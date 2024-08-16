@@ -61,4 +61,4 @@ fi
 service NetworkManager restart
 
 fi
-echo 'Da tao IPV6 thanh cong!'
+echo 'Config IPv6: true'

@@ -72,8 +72,8 @@ echo "installing apps"
 
 install_3proxy
 
-echo "working folder = /home/bkns"
-WORKDIR="/home/bkns"
+echo "working folder = /home/dhp82"
+WORKDIR="/home/dhp82"
 WORKDATA="${WORKDIR}/data.txt"
 mkdir -p $WORKDIR && cd $WORKDIR
 
@@ -82,8 +82,9 @@ IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
 
 echo "Internal IP = ${IP4}. External sub for IP6 = ${IP6}"
 
-FIRST_PORT=22000
-LAST_PORT=22700
+FIRST_PORT=28282
+LAST_PORT=$(($FIRST_PORT + 699))
+#LAST_PORT=22700
 
 gen_data >$WORKDIR/data.txt
 gen_ifconfig >$WORKDIR/boot_ifconfig.sh

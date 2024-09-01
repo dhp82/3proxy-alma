@@ -7,6 +7,8 @@ random() {
 }
 
 array=(1 2 3 4 5 6 7 8 9 0 a b c d e f)
+main_interface=$(ip route get 8.8.8.8 | awk -- '{printf $5}')
+
 gen64() {
 	ip64() {
 		echo "${array[$RANDOM % 16]}${array[$RANDOM % 16]}${array[$RANDOM % 16]}${array[$RANDOM % 16]}"
@@ -41,11 +43,9 @@ setgid 65535
 setuid 65535
 stacksize 6291456 
 flush
-auth strong
+auth none
 
-users $(awk -F "/" 'BEGIN{ORS="";} {print $1 ":CL:" $2 " "}' ${WORKDATA})
-
-$(awk -F "/" '{print "auth strong\n" \
+$(awk -F "/" '{print "auth none\n" \
 "allow " $1 "\n" \
 "proxy -6 -n -a -p" $4 " -i" $3 " -e"$5"\n" \
 "flush\n"}' ${WORKDATA})
@@ -73,11 +73,11 @@ EOF
 
 gen_ifconfig() {
     cat <<EOF
-$(awk -F "/" '{print "ifconfig eth0 inet6 add " $5 "/64"}' ${WORKDATA})
+$(awk -F "/" '{print "ifconfig '$main_interface' inet6 add " $5 "/64"}' ${WORKDATA})
 EOF
 }
-echo "installing apps"
-yum -y install --nogpgcheck wget gcc net-tools bsdtar zip >/dev/null
+echo "Installing necessary packages"
+yum -y install --nogpgcheck wget gcc net-tools bsdtar zip make >/dev/null
 
 cat << EOF > /etc/rc.d/rc.local
 #!/bin/bash
@@ -86,8 +86,8 @@ EOF
 
 install_3proxy
 
-echo "working folder = /home/cloudfly"
-WORKDIR="/home/cloudfly"
+echo "working folder = /home/dhp82"
+WORKDIR="/home/dhp82"
 WORKDATA="${WORKDIR}/data.txt"
 mkdir $WORKDIR && cd $_
 
@@ -100,7 +100,7 @@ echo "Internal ip = ${IP4}. Exteranl sub for ip6 = ${IP6}"
 #LAST_PORT=$(($FIRST_PORT + $COUNT))
 FIRST_PORT=28282
 #LAST_PORT=11000
-LAST_PORT=$(($FIRST_PORT + 999))
+LAST_PORT=$(($FIRST_PORT + 699))
 
 gen_data >$WORKDIR/data.txt
 gen_iptables >$WORKDIR/boot_iptables.sh

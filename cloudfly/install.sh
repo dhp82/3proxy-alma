@@ -88,8 +88,8 @@ EOF
 
 install_3proxy
 
-echo "working folder = /home/cloudfly"
-WORKDIR="/home/cloudfly"
+echo "working folder = /home/dhp82"
+WORKDIR="/home/dhp82"
 WORKDATA="${WORKDIR}/data.txt"
 mkdir $WORKDIR && cd $_
 
@@ -102,7 +102,7 @@ echo "Internal ip = ${IP4}. Exteranl sub for ip6 = ${IP6}"
 #LAST_PORT=$(($FIRST_PORT + $COUNT))
 FIRST_PORT=28282
 #LAST_PORT=11000
-LAST_PORT=$(($FIRST_PORT + 999))
+LAST_PORT=$(($FIRST_PORT + 699))
 
 gen_data >$WORKDIR/data.txt
 gen_iptables >$WORKDIR/boot_iptables.sh

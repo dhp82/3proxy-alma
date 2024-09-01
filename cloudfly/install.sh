@@ -1,12 +1,12 @@
 #!/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
 random() {
 	tr </dev/urandom -dc A-Za-z0-9 | head -c5
 	echo
 }
 
 array=(1 2 3 4 5 6 7 8 9 0 a b c d e f)
-main_interface=$(ip route get 8.8.8.8 | awk -- '{printf $5}')
-
 gen64() {
 	ip64() {
 		echo "${array[$RANDOM % 16]}${array[$RANDOM % 16]}${array[$RANDOM % 16]}${array[$RANDOM % 16]}"
@@ -15,30 +15,15 @@ gen64() {
 }
 install_3proxy() {
     echo "installing 3proxy"
-    mkdir -p /3proxy
-    cd /3proxy
-    URL="https://github.com/z3APA3A/3proxy/archive/0.9.3.tar.gz"
+    URL="https://github.com/z3APA3A/3proxy/archive/3proxy-0.8.6.tar.gz"
     wget -qO- $URL | bsdtar -xvf-
-    cd 3proxy-0.9.3
+    cd 3proxy-3proxy-0.8.6
     make -f Makefile.Linux
     mkdir -p /usr/local/etc/3proxy/{bin,logs,stat}
-    mv /3proxy/3proxy-0.9.3/bin/3proxy /usr/local/etc/3proxy/bin/
-    wget https://raw.githubusercontent.com/dhp82/ipv6-script-centos/master/scripts/3proxy.service-Centos8 --output-document=/3proxy/3proxy-0.9.3/scripts/3proxy.service2
-    cp /3proxy/3proxy-0.9.3/scripts/3proxy.service2 /usr/lib/systemd/system/3proxy.service
-    systemctl link /usr/lib/systemd/system/3proxy.service
-    systemctl daemon-reload
-#    systemctl enable 3proxy
-    echo "* hard nofile 999999" >>  /etc/security/limits.conf
-    echo "* soft nofile 999999" >>  /etc/security/limits.conf
-    echo "net.ipv6.conf.$main_interface.proxy_ndp=1" >> /etc/sysctl.conf
-    echo "net.ipv6.conf.all.proxy_ndp=1" >> /etc/sysctl.conf
-    echo "net.ipv6.conf.default.forwarding=1" >> /etc/sysctl.conf
-    echo "net.ipv6.conf.all.forwarding=1" >> /etc/sysctl.conf
-    echo "net.ipv6.ip_nonlocal_bind = 1" >> /etc/sysctl.conf
-    sysctl -p
-    systemctl stop firewalld
-    systemctl disable firewalld
-
+    cp src/3proxy /usr/local/etc/3proxy/bin/
+    #cp ./scripts/rc.d/proxy.sh /etc/init.d/3proxy
+    #chmod +x /etc/init.d/3proxy
+    #chkconfig 3proxy on
     cd $WORKDIR
 }
 
@@ -73,6 +58,7 @@ $(awk -F "/" '{print $3 ":" $4 ":" $1 ":" $2 }' ${WORKDATA})
 EOF
 }
 
+
 gen_data() {
     seq $FIRST_PORT $LAST_PORT | while read port; do
         echo "$(random)/$(random)/$IP4/$port/$(gen64 $IP6)"
@@ -87,16 +73,21 @@ EOF
 
 gen_ifconfig() {
     cat <<EOF
-$(awk -F "/" '{print "ifconfig '$main_interface' inet6 add " $5 "/64"}' ${WORKDATA})
+$(awk -F "/" '{print "ifconfig eth0 inet6 add " $5 "/64"}' ${WORKDATA})
 EOF
 }
 echo "installing apps"
-yum -y install gcc net-tools bsdtar zip make >/dev/null
+yum -y install --nogpgcheck wget gcc net-tools bsdtar zip >/dev/null
+
+cat << EOF > /etc/rc.d/rc.local
+#!/bin/bash
+touch /var/lock/subsys/local
+EOF
 
 install_3proxy
 
-echo "working folder = /home/proxy-installer"
-WORKDIR="/home/proxy-installer"
+echo "working folder = /home/cloudfly"
+WORKDIR="/home/cloudfly"
 WORKDATA="${WORKDIR}/data.txt"
 mkdir $WORKDIR && cd $_
 
@@ -109,25 +100,24 @@ echo "Internal ip = ${IP4}. Exteranl sub for ip6 = ${IP6}"
 #LAST_PORT=$(($FIRST_PORT + $COUNT))
 FIRST_PORT=28282
 #LAST_PORT=11000
-LAST_PORT=$(($FIRST_PORT + 749))
+LAST_PORT=$(($FIRST_PORT + 999))
 
 gen_data >$WORKDIR/data.txt
 gen_iptables >$WORKDIR/boot_iptables.sh
 gen_ifconfig >$WORKDIR/boot_ifconfig.sh
-echo NM_CONTROLLED="no" >> /etc/sysconfig/network-scripts/ifcfg-${main_interface}
-chmod +x $WORKDIR/boot_*.sh /etc/rc.local
+chmod +x boot_*.sh /etc/rc.local
 
 gen_3proxy >/usr/local/etc/3proxy/3proxy.cfg
 
 cat >>/etc/rc.local <<EOF
-systemctl start NetworkManager.service
-# ifup ${main_interface}
 bash ${WORKDIR}/boot_iptables.sh
 bash ${WORKDIR}/boot_ifconfig.sh
 ulimit -n 65535
-/usr/local/etc/3proxy/bin/3proxy /usr/local/etc/3proxy/3proxy.cfg &
+/usr/local/etc/3proxy/bin/3proxy /usr/local/etc/3proxy/3proxy.cfg
 EOF
 
 bash /etc/rc.local
 
 gen_proxy_file_for_user
+rm -rf /root/3proxy-3proxy-0.8.6
+echo "Starting Proxy"

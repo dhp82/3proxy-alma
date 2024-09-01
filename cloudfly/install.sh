@@ -77,7 +77,7 @@ $(awk -F "/" '{print "ifconfig eth0 inet6 add " $5 "/64"}' ${WORKDATA})
 EOF
 }
 echo "installing apps"
-yum -y install --nogpgcheck wget gcc net-tools bsdtar zip >/dev/null
+yum -y install --nogpgcheck wget gcc net-tools bsdtar zip make >/dev/null
 
 cat << EOF > /etc/rc.d/rc.local
 #!/bin/bash

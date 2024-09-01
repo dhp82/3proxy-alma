@@ -15,6 +15,7 @@ gen64() {
 	}
 	echo "$1:$(ip64):$(ip64):$(ip64):$(ip64)"
 }
+
 install_3proxy() {
     echo "installing 3proxy"
     URL="https://github.com/z3APA3A/3proxy/archive/3proxy-0.8.6.tar.gz"
@@ -32,7 +33,7 @@ install_3proxy() {
 gen_3proxy() {
     cat <<EOF
 daemon
-maxconn 2000
+maxconn 4000
 nserver 1.1.1.1
 nserver 8.8.4.4
 nserver 2001:4860:4860::8888
@@ -43,39 +44,31 @@ setgid 65535
 setuid 65535
 stacksize 6291456 
 flush
-auth none
 
-$(awk -F "/" '{print "auth none\n" \
-"allow " $1 "\n" \
-"proxy -6 -n -a -p" $4 " -i" $3 " -e"$5"\n" \
+$(awk -F "/" '{print "proxy -6 -n -a -p" $2 " -i" $1 " -e"$3"\n" \
 "flush\n"}' ${WORKDATA})
 EOF
 }
 
 gen_proxy_file_for_user() {
     cat >proxy.txt <<EOF
-$(awk -F "/" '{print $3 ":" $4 ":" $1 ":" $2 }' ${WORKDATA})
+$(awk -F "/" '{print $1 ":" $2 }' ${WORKDATA})
 EOF
 }
 
 
 gen_data() {
     seq $FIRST_PORT $LAST_PORT | while read port; do
-        echo "$(random)/$(random)/$IP4/$port/$(gen64 $IP6)"
+        echo "$IP4/$port/$(gen64 $IP6)"
     done
-}
-
-gen_iptables() {
-    cat <<EOF
-    $(awk -F "/" '{print "iptables -I INPUT -p tcp --dport " $4 "  -m state --state NEW -j ACCEPT"}' ${WORKDATA}) 
-EOF
 }
 
 gen_ifconfig() {
     cat <<EOF
-$(awk -F "/" '{print "ifconfig '$main_interface' inet6 add " $5 "/64"}' ${WORKDATA})
+$(awk -F "/" '{print "ifconfig '$main_interface' inet6 add " $3 "/64"}' ${WORKDATA})
 EOF
 }
+
 echo "Installing necessary packages"
 yum -y install --nogpgcheck wget gcc net-tools bsdtar zip make >/dev/null
 
@@ -94,7 +87,7 @@ mkdir $WORKDIR && cd $_
 IP4=$(curl -4 -s icanhazip.com)
 IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
 
-echo "Internal ip = ${IP4}. Exteranl sub for ip6 = ${IP6}"
+echo "Internal ip = ${IP4}. External subnet for IPv6 = ${IP6}"
 #echo "How many proxy do you want to create? Example 1000"
 #read COUNT
 #LAST_PORT=$(($FIRST_PORT + $COUNT))
@@ -103,7 +96,6 @@ FIRST_PORT=28282
 LAST_PORT=$(($FIRST_PORT + 699))
 
 gen_data >$WORKDIR/data.txt
-gen_iptables >$WORKDIR/boot_iptables.sh
 gen_ifconfig >$WORKDIR/boot_ifconfig.sh
 chmod +x boot_*.sh /etc/rc.local
 

@@ -78,7 +78,7 @@ gen_ifconfig() {
 $(awk -F "/" '{print "ifconfig '$main_interface' inet6 add " $5 "/64"}' ${WORKDATA})
 EOF
 }
-echo "installing apps"
+echo "Installing necessary packages"
 yum -y install --nogpgcheck wget gcc net-tools bsdtar zip make >/dev/null
 
 cat << EOF > /etc/rc.d/rc.local

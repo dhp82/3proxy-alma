@@ -1,19 +1,10 @@
 #!/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
-echo > /etc/sysctl.conf
-##
-tee -a /etc/sysctl.conf <<EOF
-net.ipv6.conf.default.disable_ipv6 = 0
-net.ipv6.conf.all.disable_ipv6 = 0
-EOF
-##
-
 random() {
 	tr </dev/urandom -dc A-Za-z0-9 | head -c5
 	echo
 }
-
 array=(1 2 3 4 5 6 7 8 9 0 a b c d e f)
 main_interface=$(ip route get 8.8.8.8 | awk -- '{printf $5}')
 
@@ -93,7 +84,20 @@ IP_LAN="192.168.1.7"
 IP4=$(curl -4 -s icanhazip.com)
 IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
 
+##
+tee -a /etc/sysctl.conf <<EOF
+net.ipv6.conf.default.disable_ipv6 = 0
+net.ipv6.conf.all.disable_ipv6 = 0
+EOF
+##
+tee -a /etc/sysconfig/network-scripts/ifcfg-eth0 <<-EOF
+	IPV6_DEFAULTGW=$IP6::1
+	EOF
+##
+
 echo "Internal ip = ${IP_LAN}. External subnet for IPv6 = ${IP6}"
+
+
 #echo "How many proxy do you want to create? Example 1000"
 #read COUNT
 #LAST_PORT=$(($FIRST_PORT + $COUNT))
@@ -108,7 +112,6 @@ chmod +x boot_*.sh /etc/rc.local
 gen_3proxy >/usr/local/etc/3proxy/3proxy.cfg
 
 cat >>/etc/rc.local <<EOF
-#bash ${WORKDIR}/boot_iptables.sh
 bash ${WORKDIR}/boot_ifconfig.sh
 ulimit -n 65535
 /usr/local/etc/3proxy/bin/3proxy /usr/local/etc/3proxy/3proxy.cfg

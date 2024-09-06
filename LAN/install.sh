@@ -1,6 +1,14 @@
 #!/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
+echo > /etc/sysctl.conf
+##
+tee -a /etc/sysctl.conf <<EOF
+net.ipv6.conf.default.disable_ipv6 = 0
+net.ipv6.conf.all.disable_ipv6 = 0
+EOF
+##
+
 random() {
 	tr </dev/urandom -dc A-Za-z0-9 | head -c5
 	echo

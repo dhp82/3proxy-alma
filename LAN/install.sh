@@ -94,7 +94,7 @@ tee -a /etc/sysconfig/network-scripts/ifcfg-${main_interface} <<-EOF
 	IPV6_DEFAULTGW=$IP6::1
 	EOF
 ##
-
+systemctl restart NetworkManager
 echo "Internal ip = ${IP_LAN}. External subnet for IPv6 = ${IP6}"
 
 

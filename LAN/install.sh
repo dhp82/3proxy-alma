@@ -90,7 +90,7 @@ net.ipv6.conf.default.disable_ipv6 = 0
 net.ipv6.conf.all.disable_ipv6 = 0
 EOF
 ##
-tee -a /etc/sysconfig/network-scripts/ifcfg-eth0 <<-EOF
+tee -a /etc/sysconfig/network-scripts/ifcfg-${main_interface} <<-EOF
 	IPV6_DEFAULTGW=$IP6::1
 	EOF
 ##

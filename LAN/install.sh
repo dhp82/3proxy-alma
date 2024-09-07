@@ -91,6 +91,11 @@ net.ipv6.conf.all.disable_ipv6 = 0
 EOF
 ##
 tee -a /etc/sysconfig/network-scripts/ifcfg-${main_interface} <<-EOF
+	IPV6INIT=yes
+	IPV6_AUTOCONF=no
+	IPV6_DEFROUTE=yes
+	IPV6_FAILURE_FATAL=no
+	IPV6_ADDR_GEN_MODE=stable-privacy
 	IPV6_DEFAULTGW=$IP6::1
 	EOF
 ##

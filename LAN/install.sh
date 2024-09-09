@@ -80,26 +80,10 @@ WORKDIR="/home/dhp82"
 WORKDATA="${WORKDIR}/data.txt"
 mkdir $WORKDIR && cd $_
 
-IP_LAN="192.168.1.7"
+IP_LAN="192.168.1.10"
 IP4=$(curl -4 -s icanhazip.com)
 IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
 
-##
-tee -a /etc/sysctl.conf <<EOF
-net.ipv6.conf.default.disable_ipv6 = 0
-net.ipv6.conf.all.disable_ipv6 = 0
-EOF
-##
-tee -a /etc/sysconfig/network-scripts/ifcfg-${main_interface} <<-EOF
-	IPV6INIT=yes
-	IPV6_AUTOCONF=no
-	IPV6_DEFROUTE=yes
-	IPV6_FAILURE_FATAL=no
-	IPV6_ADDR_GEN_MODE=stable-privacy
-	IPV6_DEFAULTGW=$IP6::1
-	EOF
-##
-systemctl restart NetworkManager
 echo "Internal ip = ${IP_LAN}. External subnet for IPv6 = ${IP6}"
 
 

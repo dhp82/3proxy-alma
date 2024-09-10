@@ -96,12 +96,11 @@ echo "LAN ip = ${IP_LAN}"
 echo "Public IPv4 = ${IP4}"
 echo "Subnet for IPv6 = ${IP6}"
 
-#echo "How many proxy do you want to create? Example 1000"
-#read COUNT
-#LAST_PORT=$(($FIRST_PORT + $COUNT))
+echo "So luong proxy muon tao:"
+read COUNT
 FIRST_PORT=28282
-#LAST_PORT=11000
-LAST_PORT=$(($FIRST_PORT + 499))
+LAST_PORT=$(($FIRST_PORT + $COUNT))
+#LAST_PORT=$(($FIRST_PORT + 499))
 
 gen_data >$WORKDIR/data.txt
 gen_ifconfig >$WORKDIR/boot_ifconfig.sh
@@ -119,5 +118,4 @@ EOF
 bash /etc/rc.local
 
 gen_proxy_file_for_user
-#rm -rf /root/3proxy-3proxy-0.8.6
 echo "Starting Proxy"

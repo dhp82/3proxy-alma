@@ -96,7 +96,7 @@ echo "LAN ip = ${IP_LAN}"
 echo "Public IPv4 = ${IP4}"
 echo "Subnet for IPv6 = ${IP6}"
 
-echo "So luong proxy muon tao:"
+echo "NHAP SO LUONG PROXY MUON TAO"
 read COUNT
 FIRST_PORT=28282
 LAST_PORT=$(($FIRST_PORT + $COUNT))

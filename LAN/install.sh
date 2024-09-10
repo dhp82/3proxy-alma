@@ -26,6 +26,8 @@ install_3proxy() {
     #cp ./scripts/rc.d/proxy.sh /etc/init.d/3proxy
     #chmod +x /etc/init.d/3proxy
     #chkconfig 3proxy on
+    systemctl stop firewalld
+    systemctl disable firewalld
     cd $WORKDIR
 }
 

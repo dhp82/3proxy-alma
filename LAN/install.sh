@@ -31,8 +31,8 @@ install_3proxy() {
     systemctl daemon-reload
     echo "* hard nofile 999999" >>  /etc/security/limits.conf
     echo "* soft nofile 999999" >>  /etc/security/limits.conf
-    systemctl stop firewalld
-    systemctl disable firewalld
+    #systemctl stop firewalld
+    #systemctl disable firewalld
 
     cd $WORKDIR
 }
@@ -109,15 +109,15 @@ IP4=$(curl -4 -s icanhazip.com)
 IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
 
 echo "LAN ip = ${IP_LAN}"
-echo "Internal ip = ${IP4}"
-echo "External subnet for IPv6 = ${IP6}"
+echo "Public IPv4 = ${IP4}"
+echo "Subnet for IPv6 = ${IP6}"
 
 #echo "How many proxy do you want to create? Example 1000"
 #read COUNT
 #LAST_PORT=$(($FIRST_PORT + $COUNT))
 FIRST_PORT=28282
 #LAST_PORT=11000
-LAST_PORT=$(($FIRST_PORT + 9))
+LAST_PORT=$(($FIRST_PORT + 499))
 
 gen_data >$WORKDIR/data.txt
 gen_ifconfig >$WORKDIR/boot_ifconfig.sh

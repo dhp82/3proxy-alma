@@ -17,6 +17,28 @@ gen64() {
 
 install_3proxy() {
     echo "installing 3proxy"
+    mkdir -p /3proxy
+    cd /3proxy
+    URL="https://github.com/z3APA3A/3proxy/archive/0.9.3.tar.gz"
+    wget -qO- $URL | bsdtar -xvf-
+    cd 3proxy-0.9.3
+    make -f Makefile.Linux
+    mkdir -p /usr/local/etc/3proxy/{bin,logs,stat}
+    mv /3proxy/3proxy-0.9.3/bin/3proxy /usr/local/etc/3proxy/bin/
+    wget https://raw.githubusercontent.com/dhp82/3proxy-alma/main/LAN/3proxy.service-almalinux8 --output-document=/3proxy/3proxy-0.9.3/scripts/3proxy.service2
+    cp /3proxy/3proxy-0.9.3/scripts/3proxy.service2 /usr/lib/systemd/system/3proxy.service
+    systemctl link /usr/lib/systemd/system/3proxy.service
+    systemctl daemon-reload
+    echo "* hard nofile 999999" >>  /etc/security/limits.conf
+    echo "* soft nofile 999999" >>  /etc/security/limits.conf
+    systemctl stop firewalld
+    systemctl disable firewalld
+
+    cd $WORKDIR
+}
+
+install_3proxy2() {
+    echo "installing 3proxy"
     URL="https://github.com/z3APA3A/3proxy/archive/3proxy-0.8.6.tar.gz"
     wget -qO- $URL | bsdtar -xvf-
     cd 3proxy-3proxy-0.8.6
@@ -95,7 +117,7 @@ echo "External subnet for IPv6 = ${IP6}"
 #LAST_PORT=$(($FIRST_PORT + $COUNT))
 FIRST_PORT=28282
 #LAST_PORT=11000
-LAST_PORT=$(($FIRST_PORT + 1999))
+LAST_PORT=$(($FIRST_PORT + 9))
 
 gen_data >$WORKDIR/data.txt
 gen_ifconfig >$WORKDIR/boot_ifconfig.sh
@@ -104,13 +126,14 @@ chmod +x boot_*.sh /etc/rc.local
 gen_3proxy >/usr/local/etc/3proxy/3proxy.cfg
 
 cat >>/etc/rc.local <<EOF
+systemctl start NetworkManager.service
 bash ${WORKDIR}/boot_ifconfig.sh
 ulimit -n 65535
-/usr/local/etc/3proxy/bin/3proxy /usr/local/etc/3proxy/3proxy.cfg
+/usr/local/etc/3proxy/bin/3proxy /usr/local/etc/3proxy/3proxy.cfg &
 EOF
 
 bash /etc/rc.local
 
 gen_proxy_file_for_user
-rm -rf /root/3proxy-3proxy-0.8.6
+#rm -rf /root/3proxy-3proxy-0.8.6
 echo "Starting Proxy"

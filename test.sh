@@ -36,9 +36,16 @@ install_3proxy() {
 
 setup_nat64() {
     echo "Configuring NAT64..."
+    # Bật forwarding IPv6 và IPv4
     sysctl -w net.ipv6.conf.all.forwarding=1
     sysctl -w net.ipv4.conf.all.forwarding=1
+
+    # Ánh xạ IPv6 ra IPv4 (sử dụng ip6tables để cấu hình NAT64)
     ip6tables -t nat -A POSTROUTING -o ${main_interface} -j MASQUERADE
+
+    # Ánh xạ các yêu cầu IPv6 ra IPv4, sử dụng địa chỉ NAT64 (mạng IPv6 của bạn sẽ kết nối với địa chỉ IPv4 bên ngoài)
+    ip6tables -t nat -A POSTROUTING -o ${main_interface} -s 64:ff9b::/96 -d 0.0.0.0/0 -j MASQUERADE
+    iptables -t nat -A PREROUTING -d 0.0.0.0/0 -p tcp --dport 80 -j DNAT --to-destination 64:ff9b::/96
 }
 
 gen_3proxy() {

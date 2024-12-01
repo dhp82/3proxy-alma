@@ -92,7 +92,7 @@ echo "LAN IP = ${IP_LAN}"
 echo "Public IPv4 = ${IP4}"
 echo "Subnet for IPv6 = ${IP6}"
 
-COUNT=1000 # Số lượng proxy
+COUNT=10 # Số lượng proxy
 FIRST_PORT=10000
 LAST_PORT=$(($FIRST_PORT + $COUNT))
 

@@ -84,7 +84,7 @@ WORKDIR="/home/dhp82"
 WORKDATA="${WORKDIR}/data.txt"
 mkdir $WORKDIR && cd $_
 
-IP_LAN="x.x.x.x"
+IP_LAN="192.168.1.10"
 IP4=$(curl -4 -s icanhazip.com)
 IP6=$(curl -6 -s icanhazip.com | cut -f1-3 -d':')  # Lấy subnet /48
 

@@ -91,6 +91,7 @@ EOF
 }
 
 echo "installing apps"
+dnf -y install wget gcc net-tools bsdtar zip >/dev/null
 
 install_3proxy
 

@@ -7,6 +7,9 @@ random() {
 }
 
 array=(1 2 3 4 5 6 7 8 9 0 a b c d e f)
+
+main_interface=$(ip route get 8.8.8.8 | awk -- '{printf $5}')
+
 gen64() {
     ip64() {
         echo "${array[$RANDOM % 16]}${array[$RANDOM % 16]}${array[$RANDOM % 16]}${array[$RANDOM % 16]}"
@@ -15,7 +18,7 @@ gen64() {
 }
 
 install_3proxy() {
-    echo "Installing 3proxy"
+    echo "installing 3proxy"
     URL="https://github.com/z3APA3A/3proxy/archive/refs/tags/0.8.13.tar.gz"
     wget -qO- $URL | tar -xzf-
     cd 3proxy-0.8.13
@@ -45,6 +48,12 @@ $(awk -F "/" '{print "proxy -6 -n -a -p" $2 " -i" $1 " -e"$3"\n" \
 EOF
 }
 
+gen_proxy_file_for_user() {
+    cat >proxy.txt <<EOF
+$(awk -F "/" '{print $1 ":" $2 }' ${WORKDATA})
+EOF
+}
+
 gen_data() {
     seq $FIRST_PORT $LAST_PORT | while read port; do
         echo "$IP4/$port/$(gen64 $IP6)"
@@ -53,37 +62,30 @@ gen_data() {
 
 gen_ifconfig() {
     cat <<EOF
-$(awk -F "/" '{print "ifconfig eth0 inet6 add " $3 "/64"}' ${WORKDATA})
+$(awk -F "/" '{print "ifconfig '$main_interface' inet6 add " $3 "/64"}' ${WORKDATA})
 EOF
 }
 
-gen_proxy_file_for_user() {
-    cat >proxy.txt <<EOF
-$(awk -F "/" '{print $1 ":" $2 }' ${WORKDATA})
-EOF
-}
-
-echo "Installing necessary packages"
+echo "installing apps"
 
 install_3proxy
 
-echo "Working folder = /home/dhp82"
+echo "working folder = /home/dhp82"
 WORKDIR="/home/dhp82"
 WORKDATA="${WORKDIR}/data.txt"
-mkdir -p $WORKDIR && cd $WORKDIR
+mkdir $WORKDIR && cd $_
 
 IP4=$(curl -4 -s icanhazip.com)
 IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
 
-echo "External subnet for IPv6 = ${IP6}"
+echo "Internal IP = ${IP4}. External sub for IP6 = ${IP6}"
 
-FIRST_PORT=22000
-LAST_PORT=$(($FIRST_PORT + 699))
-#LAST_PORT=22700
+FIRST_PORT=28282
+LAST_PORT=$(($FIRST_PORT + 499))
 
 gen_data >$WORKDIR/data.txt
 gen_ifconfig >$WORKDIR/boot_ifconfig.sh
-chmod +x boot_ifconfig.sh /etc/rc.d/rc.local
+chmod +x boot_*.sh /etc/rc.d/rc.local
 
 gen_3proxy >/usr/local/etc/3proxy/3proxy.cfg
 
@@ -100,8 +102,7 @@ systemctl start rc-local
 bash /etc/rc.local
 
 gen_proxy_file_for_user
-
 rm -rf /root/setup.sh
-rm -rf /root/3proxy-0.8.13
+rm -rf /root/3proxy-3proxy-0.8.6
 
 echo "Starting Proxy"

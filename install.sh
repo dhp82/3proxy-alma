@@ -2,16 +2,6 @@
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
 random() {
-    tr </dev/urandom -dc A-Za-z0-9 | head -c5
-    echo
-}
-
-array=(1 2 3 4 5 6 7 8 9 0 a b c d e f)
-
-#!/bin/sh
-PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-
-random() {
 	tr </dev/urandom -dc A-Za-z0-9 | head -c5
 	echo
 }
@@ -80,7 +70,7 @@ EOF
 
 gen_data() {
     seq $FIRST_PORT $LAST_PORT | while read port; do
-        echo "user$port/$(random)/$IP4/$port/$(gen64 $IP6)"
+        echo "$(random)/$(random)/$IP4/$port/$(gen64 $IP6)"
     done
 }
 
@@ -90,6 +80,11 @@ $(awk -F "/" '{print "ifconfig '$main_interface' inet6 add " $5 "/64"}' ${WORKDA
 EOF
 }
 
+cat << EOF > /etc/rc.d/rc.local
+#!/bin/bash
+touch /var/lock/subsys/local
+EOF
+
 echo "installing apps"
 dnf -y install wget gcc net-tools bsdtar zip >/dev/null
 
@@ -98,32 +93,30 @@ install_3proxy
 echo "working folder = /home/dhp82"
 WORKDIR="/home/dhp82"
 WORKDATA="${WORKDIR}/data.txt"
-mkdir -p $WORKDIR && cd $WORKDIR
+mkdir $WORKDIR && cd $_
 
 IP4=$(curl -4 -s icanhazip.com)
 IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
 
-echo "Internal IP = ${IP4}. External sub for IP6 = ${IP6}"
+echo "Public IPv4 = ${IP4}"
+echo "Subnet for IPv6 = ${IP6}"
+
 
 FIRST_PORT=28282
 LAST_PORT=$(($FIRST_PORT + 699))
-#LAST_PORT=22700
 
 gen_data >$WORKDIR/data.txt
 gen_ifconfig >$WORKDIR/boot_ifconfig.sh
-chmod +x boot_*.sh /etc/rc.d/rc.local
+chmod +x boot_*.sh /etc/rc.local
 
 gen_3proxy >/usr/local/etc/3proxy/3proxy.cfg
 
-cat >>/etc/rc.d/rc.local <<EOF
+cat >>/etc/rc.local <<EOF
+systemctl start NetworkManager.service
 bash ${WORKDIR}/boot_ifconfig.sh
-ulimit -n 10048
-/usr/local/etc/3proxy/bin/3proxy /usr/local/etc/3proxy/3proxy.cfg
+ulimit -n 65535
+/usr/local/etc/3proxy/bin/3proxy /usr/local/etc/3proxy/3proxy.cfg &
 EOF
-
-chmod +x /etc/rc.d/rc.local
-systemctl enable rc-local
-systemctl start rc-local
 
 bash /etc/rc.local
 

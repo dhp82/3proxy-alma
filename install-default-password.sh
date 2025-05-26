@@ -89,7 +89,7 @@ IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
 echo "Internal IP = ${IP4}. External sub for IP6 = ${IP6}"
 
 FIRST_PORT=28282
-LAST_PORT=$(($FIRST_PORT + 499))
+LAST_PORT=$(($FIRST_PORT + 699))
 
 gen_data >$WORKDIR/data.txt
 gen_ifconfig >$WORKDIR/boot_ifconfig.sh

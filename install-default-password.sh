@@ -60,7 +60,7 @@ EOF
 }
 
 USER_NAME="SANGVT"
-PASS_WORD="26SANG1223&@"
+PASS_WORD="9Sang:City9"
 
 gen_data() {
     seq $FIRST_PORT $LAST_PORT | while read port; do

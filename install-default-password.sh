@@ -59,8 +59,8 @@ $(awk -F "/" '{print $3 ":" $4 ":" $1 ":" $2 }' ${WORKDATA})
 EOF
 }
 
-USER_NAME="SANGVT"
-PASS_WORD="9Sang:City9"
+USER_NAME="9Sang"
+PASS_WORD="City9"
 
 gen_data() {
     seq $FIRST_PORT $LAST_PORT | while read port; do
